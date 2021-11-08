@@ -1,0 +1,8 @@
+{
+    "CN": "{{ icert.cn }}",
+    "key": {
+        "algo": "{{ icert.key_algo }}",
+        "size": {{ icert.key_size }}
+    },
+    "names": {{ icert.names |d([]) |to_json }}
+}

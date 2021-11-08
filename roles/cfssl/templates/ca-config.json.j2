@@ -1,0 +1,13 @@
+{
+    "signing": {
+        "default": {
+            "expiry": "{{ cfssl_ca_signing_default_expiry }}"
+        },
+        "profiles": {
+        "kubernetes": {
+            "usages": {{ cfssl_ca_signing_profiles_kubernetes_usages |to_json }},
+            "expiry": "{{ cfssl_ca_signing_profiles_kubernetes_expiry }}"
+        }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    cfssl_bin_directory: "{{ ansible_env.HOME }}/.tmp"
+  roles:
+    - cfssl

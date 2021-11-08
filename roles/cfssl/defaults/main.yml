@@ -1,0 +1,153 @@
+---
+# defaults file for cfssl
+cfssl_install: yes
+
+# Specifies the version of CFSSL toolkit we want to download and use
+cfssl_version: "1.6.0"
+
+# Checksum file
+cfssl_checksum_url: "https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/cfssl_{{ cfssl_version }}_checksums.txt"
+
+# The directory where CFSSL binaries will be installed
+cfssl_bin_directory: "/usr/local/bin"
+
+# Owner of the cfssl binaries
+cfssl_owner: "root"
+
+# Group of cfssl binaries
+cfssl_group: "root"
+
+# Operarting system on which "cfssl/cfssljson" should run on
+cfssl_os: "linux" # use "darwin" for MacOS X, "windows" for Windows
+
+# Processor architecture "cfssl/cfssljson" should run on
+cfssl_arch: "amd64" # the only supported architecture at the moment
+
+# Cert CA config
+cfssl_gen_ca: yes
+cfssl_ca_signing_default_expiry: "8760h"
+cfssl_ca_signing_profiles_kubernetes_expiry: "8760h"
+cfssl_ca_signing_profiles_kubernetes_usages:
+  - "signing"
+  - "key encipherment"
+  - "server auth"
+  - "client auth"
+
+# Certs
+cfssl_certs:
+  # ca-csr
+  - cn: "Kubernetes"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "Kubernetes"
+        OU: "CA"
+        ST: "Oregon"
+  # admin-csr
+  - cn: "admin"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "system:masters"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json
+
+  # worker0.mylabserver.com-csr
+  - cn: "system:node:worker0.mylabserver.com"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "system:nodes"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    hostname: 172.34.1.0,worker0.mylabserver.com
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json
+
+  # kube-controller-manager-csr
+  - cn: "system:kube-controller-manager"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "system:kube-controller-manager"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json
+
+  # kube-proxy-csr
+  - cn: "system:kube-proxy"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "system:kube-proxy"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json
+
+  # kube-scheduler-csr
+  - cn: "system:kube-scheduler"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "system:kube-scheduler"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json
+
+  # kubernetes-csr
+  - cn: "kubernetes"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "kubernetes"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json
+    hostname: 127.0.0.1,localhost,kubernetes.default,kubernetes.mylabserver.com,10.32.0.1,172.34.0.0,controller0.mylabserver.com,172.34.0.1,controller1.mylabserver.com,172.34.2.0,
+
+  # service-account-csr
+  - cn: "service-accounts"
+    key_algo: "rsa"
+    key_size: 2048
+    names:
+      - C: "US"
+        L: "Portland"
+        O: "kubernetes"
+        OU: "Kubernetes"
+        ST: "Oregon"
+    profile: kubernetes
+    ca: ca.pem
+    ca_key: ca-key.pem
+    config: ca-config.json

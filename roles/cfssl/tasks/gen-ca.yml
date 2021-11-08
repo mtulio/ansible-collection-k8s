@@ -1,0 +1,5 @@
+---
+- name: create ca-config.json
+  template:
+    src: ca-config.json.j2
+    dest: "{{ ansible_env.HOME }}/.tmp/ca-config.json"

@@ -1,0 +1,5 @@
+---
+- name: "create {{ icert }}.json"
+  template:
+    src: cert-csr.json.j2
+    dest: "{{ ansible_env.HOME }}/.tmp/{{ icert.cn }}.json"
