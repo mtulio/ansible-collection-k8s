@@ -1,11 +1,5 @@
 ---
 
-- name: Ensure workdir exists
-  file:
-    path: "{{ cfssl_workdir_bin }}"
-    state: directory
-    mode: 0755
-
 - name: "check if bin exists"
   stat:
     path: "{{ cfssl_workdir_bin }}/{{ item_i }}"

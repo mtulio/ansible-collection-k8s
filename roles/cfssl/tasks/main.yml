@@ -8,6 +8,12 @@
     mode: 0755
     recurse: yes
 
+- name: Ensure workdir exists
+  file:
+    path: "{{ cfssl_workdir_bin }}"
+    state: directory
+    mode: 0755
+
 - include: install.yml
   when: cfssl_install
   with_items:
