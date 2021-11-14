@@ -1,0 +1,50 @@
+---
+
+- name: "check if kubeconfig exists {{ kconfig_workdir }}/{{ icfg.name }}.kubeconfig"
+  stat:
+    path: "{{ kconfig_workdir }}/{{ icfg.name }}.kubeconfig"
+  register: stat_out
+
+- name: Generating config - set-cluster
+  shell: >
+    set -o pipefail;
+    cd {{ kconfig_workdir }};
+    {{ bin_kubectl }} config \
+        set-cluster {{ kconfig_cluster_name }} \
+        --certificate-authority={{ kconfig_cluster_ca }} \
+        --embed-certs=true \
+        --server={{ icfg.server }} \
+        --kubeconfig={{ icfg.name }}.kubeconfig
+  when: not(stat_out.stat.exists)
+
+- name: Generating config - set-credentials
+  shell: >
+    set -o pipefail;
+    cd {{ kconfig_workdir }};
+    {{ bin_kubectl }} config \
+        set-credentials {{ icfg.user }} \
+        --client-certificate={{ icfg.cert }} \
+        --client-key={{ icfg.cert_key }} \
+        --embed-certs=true \
+        --kubeconfig={{ icfg.name }}.kubeconfig
+  when: not(stat_out.stat.exists)
+
+- name: Generating config - set-context
+  shell: >
+    set -o pipefail;
+    cd {{ kconfig_workdir }};
+    {{ bin_kubectl }} config \
+        set-context "default" \
+        --cluster={{ kconfig_cluster_name }} \
+        --user={{ icfg.user }} \
+        --kubeconfig={{ icfg.name }}.kubeconfig
+  when: not(stat_out.stat.exists)
+
+- name: Generating config - use-context
+  shell: >
+    set -o pipefail;
+    cd {{ kconfig_workdir }};
+    {{ bin_kubectl }} config \
+        use-context "default" \
+        --kubeconfig={{ icfg.name }}.kubeconfig
+  when: not(stat_out.stat.exists)

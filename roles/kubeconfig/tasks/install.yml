@@ -1,0 +1,17 @@
+---
+
+- name: "check if bin exists"
+  stat:
+    path: "{{ kconfig_workdir_bin }}/{{ item_i }}"
+  register: "stat_out"
+
+- name: Downloading binary
+  get_url:
+    url: "{{ kconfig_base_url }}/{{ item_i }}"
+    dest: "{{ kconfig_workdir_bin }}/{{ item_i }}"
+    mode: 0755
+    owner: "{{ kconfig_owner }}"
+    group: "{{ kconfig_group }}"
+  when: not(stat_out.stat.exists)
+  tags:
+    - cfssl

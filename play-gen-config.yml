@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  vars:
+    kconfig_workdir: "{{ ansible_env.HOME }}/.tmp/kube-config"
+    kconfig_workdir_bin: "{{ ansible_env.HOME }}/.tmp/bin"
+    kconfig_certs_dir: "{{ ansible_env.HOME }}/.tmp/certs/"
+    kconfig_cluster_ca: "{{ kconfig_certs_dir }}/ca.pem"
+  roles:
+    - kubeconfig

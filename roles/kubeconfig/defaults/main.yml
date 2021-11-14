@@ -1,0 +1,62 @@
+---
+kconfig_cluster_version: v1.22.3
+kconfig_cluster_name: kubernetes-the-hard-way
+# kconfig_worker_nodes:
+#     - name: worker0.mylabserver.com
+#       ip: 127.0.0.1
+
+# API load balancer address
+kconfig_kube_api_address: 127.0.0.1
+
+kconfig_os: linux
+kconfig_arch: amd64
+kconfig_base_url: "https://dl.k8s.io/release/{{ kconfig_cluster_version }}/bin/{{ kconfig_os }}/{{ kconfig_arch }}"
+
+kconfig_download_binaries:
+  - kubectl
+
+
+kconfig_owner: "{{ ansible_env.USER }}"
+kconfig_group: "{{ ansible_env.USER }}"
+
+kconfig_install: true
+
+kconfig_certs_dir: ""
+kconfig_cluster_ca: ca.pem
+
+kconfig_services:
+  # workers kubeconfig
+  - name: "worker0.mylabserver.com"
+    server: "https://{{ kconfig_kube_api_address }}:6443"
+    cert: "{{ kconfig_certs_dir }}worker0.mylabserver.com.pem"
+    cert_key: "{{ kconfig_certs_dir }}worker0.mylabserver.com-key.pem"
+    user: "system:node:worker0.mylabserver.com"
+  
+  # kube-proxy
+  - name: "kube-proxy"
+    server: "https://{{ kconfig_kube_api_address }}:6443"
+    cert: "{{ kconfig_certs_dir }}kube-proxy.pem"
+    cert_key: "{{ kconfig_certs_dir }}kube-proxy-key.pem"
+    user: "system:kube-proxy"
+  
+  # kube-controler-manager
+  - name: "kube-controler-manager"
+    server: "https://127.0.0.1:6443"
+    cert: "{{ kconfig_certs_dir }}kube-controller-manager.pem"
+    cert_key: "{{ kconfig_certs_dir }}kube-controller-manager-key.pem"
+    user: "system:kube-controller-manager"
+
+  # kube-scheduler
+  - name: "kube-scheduler"
+    server: "https://127.0.0.1:6443"
+    cert: "{{ kconfig_certs_dir }}kube-scheduler.pem"
+    cert_key: "{{ kconfig_certs_dir }}kube-scheduler-key.pem"
+    user: "system:kube-scheduler"
+
+  # admin
+  - name: "admin"
+    server: "https://127.0.0.1:6443"
+    cert: "{{ kconfig_certs_dir }}admin.pem"
+    cert_key: "{{ kconfig_certs_dir }}admin-key.pem"
+    user: "admin"
+  

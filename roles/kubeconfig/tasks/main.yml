@@ -1,0 +1,30 @@
+---
+
+- name: Ensure workdir exists
+  file:
+    path: "{{ kconfig_workdir }}"
+    state: directory
+    mode: 0755
+    recurse: yes
+
+- name: Ensure workdir exists
+  file:
+    path: "{{ kconfig_workdir_bin }}"
+    state: directory
+    mode: 0755
+
+- include: install.yml
+  when: kconfig_install
+  with_items:
+    - kubectl
+  loop_control:
+    loop_var: item_i
+
+- name: set facts for bin
+  set_fact:
+    bin_kubectl: "{{ kconfig_workdir_bin }}/kubectl"
+
+- include: gen-config.yml
+  with_items: "{{ kconfig_services }}"
+  loop_control:
+    loop_var: icfg
