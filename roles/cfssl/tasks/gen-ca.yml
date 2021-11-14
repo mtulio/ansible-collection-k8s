@@ -2,4 +2,27 @@
 - name: create ca-config.json
   template:
     src: ca-config.json.j2
-    dest: "{{ ansible_env.HOME }}/.tmp/ca-config.json"
+    dest: "{{ cfssl_bin_directory }}/ca-config.json"
+    mode: 0600
+
+- name: "create {{ icert }}.json"
+  template:
+    src: cert-csr.json.j2
+    dest: "{{ cfssl_bin_directory }}/ca-csr.json"
+    mode: 0600
+  with_items: "{{ cfssl_certs_ca  }}"
+  loop_control:
+    loop_var: icert
+
+- name: check if CA cert already exists
+  stat:
+    path: "{{ cfssl_bin_directory }}/ca.pem"
+  register: stat_out
+
+- name: Generate CA cert
+  shell: >
+    set -o pipefail;
+    cd {{ cfssl_bin_directory }};
+    {{ bin_cfssl }} gencert -initca ca-csr.json \
+      | {{ bin_cfssljson }} -bare ca
+  when: not(stat_out.stat.exists)

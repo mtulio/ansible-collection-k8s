@@ -3,11 +3,27 @@
 
 - include: install.yml
   when: cfssl_install
+  with_items:
+    - cfssl
+    - cfssl-bundle
+    - cfssl-certinfo
+    - cfssl-newkey
+    - cfssl-scan
+    - cfssljson
+    - mkbundle
+    - multirootca
+  loop_control:
+    loop_var: item_i
+
+- name: set facts
+  set_fact:
+    bin_cfssl: "{{ cfssl_bin_directory }}/cfssl"
+    bin_cfssljson: "{{ cfssl_bin_directory }}/cfssljson"
 
 - include: gen-ca.yml
   when: "{{ cfssl_gen_ca }}"
 
 - include: gen-cert.yml
-  with_items: "{{ cfssl_certs }}"
+  with_items: "{{ cfssl_certs_services }}"
   loop_control:
     loop_var: icert

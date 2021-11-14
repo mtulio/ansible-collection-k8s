@@ -34,8 +34,7 @@ cfssl_ca_signing_profiles_kubernetes_usages:
   - "client auth"
 
 # Certs
-cfssl_certs:
-  # ca-csr
+cfssl_certs_ca:
   - cn: "Kubernetes"
     key_algo: "rsa"
     key_size: 2048
@@ -45,6 +44,8 @@ cfssl_certs:
         O: "Kubernetes"
         OU: "CA"
         ST: "Oregon"
+
+cfssl_certs_services:
   # admin-csr
   - cn: "admin"
     key_algo: "rsa"

@@ -2,4 +2,5 @@
 - name: "create {{ icert }}.json"
   template:
     src: cert-csr.json.j2
-    dest: "{{ ansible_env.HOME }}/.tmp/{{ icert.cn }}.json"
+    dest: "{{ cfssl_bin_directory }}/{{ icert.cn }}.json"
+    mode: 0600
