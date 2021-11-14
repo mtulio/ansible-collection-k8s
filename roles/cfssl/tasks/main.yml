@@ -1,6 +1,13 @@
 ---
 # tasks file for cfssl
 
+- name: Ensure workdir exists
+  file:
+    path: "{{ cfssl_workdir }}"
+    state: directory
+    mode: 0755
+    recurse: yes
+
 - include: install.yml
   when: cfssl_install
   with_items:
@@ -17,8 +24,8 @@
 
 - name: set facts
   set_fact:
-    bin_cfssl: "{{ cfssl_bin_directory }}/cfssl"
-    bin_cfssljson: "{{ cfssl_bin_directory }}/cfssljson"
+    bin_cfssl: "{{ cfssl_workdir_bin }}/cfssl"
+    bin_cfssljson: "{{ cfssl_workdir_bin }}/cfssljson"
 
 - include: gen-ca.yml
   when: "{{ cfssl_gen_ca }}"

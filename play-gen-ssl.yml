@@ -1,7 +1,11 @@
 ---
 - hosts: localhost
   connection: local
+  become: false
   vars:
-    cfssl_bin_directory: "{{ ansible_env.HOME }}/.tmp"
+    cfssl_owner: mtulio
+    cfssl_group: mtulio
+    cfssl_workdir: "{{ ansible_env.HOME }}/.tmp/certs"
+    cfssl_workdir_bin: "{{ ansible_env.HOME }}/.tmp/bin"
   roles:
     - cfssl

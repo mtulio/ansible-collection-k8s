@@ -8,8 +8,11 @@ cfssl_version: "1.6.0"
 # Checksum file
 cfssl_checksum_url: "https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/cfssl_{{ cfssl_version }}_checksums.txt"
 
+# workdir
+cfssl_workdir: "{{ ansible_env.HOME }}/.cfssl"
+
 # The directory where CFSSL binaries will be installed
-cfssl_bin_directory: "/usr/local/bin"
+cfssl_workdir_bin: "/usr/local/bin"
 
 # Owner of the cfssl binaries
 cfssl_owner: "root"
@@ -76,6 +79,7 @@ cfssl_certs_services:
     ca: ca.pem
     ca_key: ca-key.pem
     config: ca-config.json
+    bare: worker0.mylabserver.com
 
   # kube-controller-manager-csr
   - cn: "system:kube-controller-manager"
@@ -91,6 +95,7 @@ cfssl_certs_services:
     ca: ca.pem
     ca_key: ca-key.pem
     config: ca-config.json
+    bare: kube-controller-manager
 
   # kube-proxy-csr
   - cn: "system:kube-proxy"
@@ -106,6 +111,7 @@ cfssl_certs_services:
     ca: ca.pem
     ca_key: ca-key.pem
     config: ca-config.json
+    bare: kube-proxy
 
   # kube-scheduler-csr
   - cn: "system:kube-scheduler"
@@ -121,8 +127,9 @@ cfssl_certs_services:
     ca: ca.pem
     ca_key: ca-key.pem
     config: ca-config.json
+    bare: kube-scheduler
 
-  # kubernetes-csr
+  # kubernetes-csr / kubelet?
   - cn: "kubernetes"
     key_algo: "rsa"
     key_size: 2048

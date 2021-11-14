@@ -1,14 +1,20 @@
 ---
 
-- name: check if file exists
+- name: Ensure workdir exists
+  file:
+    path: "{{ cfssl_workdir_bin }}"
+    state: directory
+    mode: 0755
+
+- name: "check if bin exists"
   stat:
-    path: "{{ cfssl_bin_directory }}/{{ item_i }}"
+    path: "{{ cfssl_workdir_bin }}/{{ item_i }}"
   register: "stat_out"
 
 - name: Downloading cfssl binaries
   get_url:
     url: "https://github.com/cloudflare/cfssl/releases/download/v{{ cfssl_version }}/{{ item_i }}_{{ cfssl_version }}_{{ cfssl_os }}_{{ cfssl_arch }}"
-    dest: "{{ cfssl_bin_directory }}/{{ item_i }}"
+    dest: "{{ cfssl_workdir_bin }}/{{ item_i }}"
     mode: 0755
     owner: "{{ cfssl_owner }}"
     group: "{{ cfssl_group }}"

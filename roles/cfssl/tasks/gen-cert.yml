@@ -2,5 +2,23 @@
 - name: "create {{ icert }}.json"
   template:
     src: cert-csr.json.j2
-    dest: "{{ cfssl_bin_directory }}/{{ icert.cn }}.json"
+    dest: "{{ cfssl_workdir }}/{{ icert.cn }}-csr.json"
     mode: 0600
+
+- name: "check if cert exists {{ cfssl_workdir }}/{{ icert.cn }}.pem"
+  stat:
+    path: "{{ cfssl_workdir }}/{{ icert.bare | d(icert.cn) }}.pem"
+  register: stat_out
+
+- name: Generate cert
+  shell: >
+    set -o pipefail;
+    cd {{ cfssl_workdir }};
+    {{ bin_cfssl }} gencert \
+        -ca=ca.pem \
+        -ca-key=ca-key.pem \
+        -config=ca-config.json \
+        -profile=kubernetes \
+        {{ icert.cn }}-csr.json \
+        | {{ bin_cfssljson }} -bare {{ icert.bare | d(icert.cn) }}
+  when: not(stat_out.stat.exists)
