@@ -40,7 +40,7 @@ kconfig_services:
     user: "system:kube-proxy"
   
   # kube-controler-manager
-  - name: "kube-controler-manager"
+  - name: "kube-controller-manager"
     server: "https://127.0.0.1:6443"
     cert: "{{ kconfig_certs_dir }}kube-controller-manager.pem"
     cert_key: "{{ kconfig_certs_dir }}kube-controller-manager-key.pem"

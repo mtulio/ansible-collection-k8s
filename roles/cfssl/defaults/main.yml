@@ -146,7 +146,7 @@ cfssl_certs_services:
     hostname: 127.0.0.1,localhost,kubernetes.default,kubernetes.mylabserver.com,10.32.0.1,172.34.0.0,controller0.mylabserver.com,172.34.0.1,controller1.mylabserver.com,172.34.2.0,
 
   # service-account-csr
-  - cn: "service-accounts"
+  - cn: "service-account"
     key_algo: "rsa"
     key_size: 2048
     names:

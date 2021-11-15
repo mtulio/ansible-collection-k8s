@@ -10,8 +10,6 @@
   with_items:
     - "{{ bootstrap_workdir }}"
 
-# Download:
-# etcd, 
-
 - include: etcd.yml
 
+- include: svc-setup-cp.yml

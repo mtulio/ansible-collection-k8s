@@ -1,2 +1,4 @@
 ---
 - include: encrypt-key.yml
+- include: cluster-role.yml
+- include: kube-scheduler.yml

@@ -8,4 +8,4 @@
     kconfig_certs_dir: "{{ ansible_env.HOME }}/.tmp/certs/"
     kconfig_cluster_ca: "{{ kconfig_certs_dir }}/ca.pem"
   roles:
-    - kubeconfig
+    - k8s-config

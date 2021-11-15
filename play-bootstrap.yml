@@ -6,5 +6,8 @@
     #bootstrap_local_workdir: "{{ ansible_env.HOME }}/.tmp"
     bootstrap_local_workdir: "/home/mtulio/.tmp"
     bootstrap_local_certs: "{{ bootstrap_local_workdir }}/certs"
+    bootstrap_local_mf: "{{ bootstrap_local_workdir }}/manifests"
+    bootstrap_local_kc: "{{ bootstrap_local_workdir }}/kube-config"
+    systemd_unit_path: "/etc/systemd/system/"
   roles:
     - k8s-services

@@ -6,17 +6,19 @@
 
 - name: manifest | encryption key
   copy:
-    dest: "{{ kconfig_workdir }}/00-encryption-config.yaml"
+    dest: "{{ kconfig_workdir }}/encryption-config.yaml"
     content: |
-        kind: EncryptionConfig
-            apiVersion: v1
-            resources:
-            - resources:
-                - secrets
-                providers:
-                - aescbc:
-                    keys:
-                        - name: key1
-                        secret: {{ ansible_env.ENCRYPTION_KEY }}
-                - identity: {}
+      ---
+      kind: EncryptionConfig
+      apiVersion: v1
+      resources:
+        - resources:
+          - secrets
+          providers:
+            - identity: {}
+            - aescbc:
+                keys:
+                  - name: key1
+                    secret: {{ ansible_env.ENCRYPTION_KEY }}
+            
     mode: 0644

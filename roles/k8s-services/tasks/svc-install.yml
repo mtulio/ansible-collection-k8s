@@ -1,0 +1,58 @@
+---
+
+- name: "Check if exists {{ bootstrap_workdir }}/{{ isvc.name }}"
+  stat:
+      path: "{{ bootstrap_workdir }}/{{ isvc.name }}"
+  register: st_dw
+
+- name: Download dependencies
+  when: not(st_dw.stat.exists)
+  get_url:
+      url: "{{ isvc.url }}"
+      dest: "{{ bootstrap_workdir }}/{{ isvc.name }}"
+      mode: 0644
+
+- name: Extract tarball
+  when: 
+    - not(st_dw.stat.exists)
+    - svc_need_extract|d(false)
+  ansible.builtin.unarchive:
+      src: "{{ bootstrap_workdir }}/{{ isvc.name }}.tar.gz"
+      dest: "{{ bootstrap_workdir }}"
+      remote_src: yes
+
+- name: "Check if download exists"
+  stat:
+      path: "{{ bootstrap_workdir }}/{{ isvc.name }}"
+  register: st_dw_bin
+
+- name: "Check if bin exists: {{ svc_base_bin }}/{{ isvc.name }}"
+  stat:
+      path: "{{ svc_base_bin }}/{{ isvc.name }}"
+  register: st_bin
+
+- name: copy bin files
+  check_mode: no
+  when:
+    - st_dw_bin.stat is defined
+    - st_dw_bin.stat.exists
+    - st_bin.stat is defined
+    - not(st_bin.stat.exists)
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: yes
+    mode: 0755
+  with_items: "{{ isvc.files }}"
+
+- name: "Check {{ svc_base_bin }}/{{ isvc.name }} exists"
+  stat:
+      path: "{{ svc_base_bin }}/{{ isvc.name }}"
+  register: st_bin
+
+#   - name: check if bin was created
+#     fail:
+#       msg: "{{ etcd_path_bin }} does not exists"
+#     when:
+#       - (st_etcd is defined) and not(st_etcd.stat.exists)
+#       #- not(st_etcd.stat.exists)

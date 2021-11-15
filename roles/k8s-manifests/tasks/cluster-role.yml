@@ -1,7 +1,7 @@
 ---
-- name: manifest | encryption key
+- name: manifest | clusterRole
   copy:
-    dest: "{{ kconfig_workdir }}/01.01-clusterRole.yaml"
+    dest: "{{ kconfig_workdir }}/clusterRole.yaml"
     content: |
       apiVersion: rbac.authorization.k8s.io/v1beta1
       kind: ClusterRole
@@ -24,9 +24,9 @@
         - "*"
     mode: 0644
 
-- name: manifest | encryption key
+- name: manifest | clusterRoleBinding
   copy:
-    dest: "{{ kconfig_workdir }}/01.02-clusterRoleBinding.yaml"
+    dest: "{{ kconfig_workdir }}/clusterRoleBinding.yaml"
     content: |
       apiVersion: rbac.authorization.k8s.io/v1beta1
       kind: ClusterRoleBinding

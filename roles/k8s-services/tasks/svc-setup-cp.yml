@@ -1,0 +1,205 @@
+--- # Setup Control Plane
+
+- name: set defautls
+  set_fact:
+    svc_base_bin: /usr/local/bin
+    svc_base_url: "https://storage.googleapis.com/kubernetes-release/release"
+    svc_os: linux
+    svc_arch: amd64
+    k8s_version: v1.10.2
+    svc_cfg_dir: /etc/kubernetes/config
+    svc_var_dir: /var/lib/kubernetes
+    svc_name: kube-apiserver
+    svc_internal_ip: 127.0.0.1
+
+- name: set bin name
+  set_fact:
+    svc_url: "{{ svc_base_url }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/{{ svc_name }}"
+    svc_bin: "{{ svc_base_bin }}/{{ svc_name }}"
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    mode: 0755
+  with_items:
+    - "{{ svc_cfg_dir }}"
+    - "{{ svc_var_dir }}"
+# - name: "Check {{ svc_base_bin }}/kube-apiserver exists"
+#   stat:
+#     path: "{{ svc_base_bin }}/kube-apiserver"
+#   register: st_bin
+
+
+- include: svc-install.yml
+  with_items:
+    - name: kube-apiserver
+      url: "{{ svc_base_url }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kube-apiserver"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kube-apiserver"
+          dest: "{{ svc_base_bin }}/kube-apiserver"
+    - name: kube-controller-manager
+      url: "{{ svc_base_url }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kube-controller-manager"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kube-controller-manager"
+          dest: "{{ svc_base_bin }}/kube-controller-manager"
+    - name: kube-scheduler
+      url: "{{ svc_base_url }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kube-scheduler"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kube-scheduler"
+          dest: "{{ svc_base_bin }}/kube-scheduler"
+    # client
+    - name: kubectl
+      url: "{{ svc_base_url }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kubectl"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kubectl"
+          dest: "{{ svc_base_bin }}/kubectl"
+  loop_control:
+    loop_var: isvc
+
+
+- name: Copy static files | certs
+  copy:
+    src: "{{ bootstrap_local_certs }}/{{ item }}"
+    dest: "{{ svc_var_dir }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - ca.pem
+    - ca-key.pem
+    - kubernetes.pem
+    - kubernetes-key.pem
+    - service-account.pem
+    - service-account-key.pem
+
+- name: Copy static files | manifests
+  copy:
+    src: "{{ bootstrap_local_mf }}/{{ item }}"
+    dest: "{{ svc_var_dir }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - encryption-config.yaml
+
+- name: Copy static files | kubeconfig
+  copy:
+    src: "{{ bootstrap_local_kc }}/{{ item }}"
+    dest: "{{ svc_var_dir }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - kube-controller-manager.kubeconfig
+    - kube-scheduler.kubeconfig
+    - admin.kubeconfig
+
+- name: Copy static files | manifests
+  copy:
+    src: "{{ bootstrap_local_mf }}/{{ item }}"
+    dest: "{{ svc_cfg_dir }}/{{ item }}"
+    mode: 0644
+  with_items:
+    - kube-scheduler.yaml
+
+- name: create service unit kube-apiserver
+  copy:
+    dest: "{{ systemd_unit_path }}/kube-apiserver.service"
+    content: |
+        [Unit]
+        Description=Kubernetes API Server
+        Documentation=https://github.com/kubernetes/kubernetes
+
+        [Service]
+        ExecStart={{ svc_base_bin }}/kube-apiserver \
+          --advertise-address={{ svc_internal_ip }} \
+          --allow-privileged=true \
+          --apiserver-count=1 \
+          --audit-log-maxage=30 \
+          --audit-log-maxbackup=3 \
+          --audit-log-maxsize=100 \
+          --audit-log-path=/var/log/audit.log \
+          --authorization-mode=Node,RBAC \
+          --bind-address=0.0.0.0 \
+          --client-ca-file=/var/lib/kubernetes/ca.pem \
+          --enable-admission-plugins=Initializers,NamespaceLifecycle,NodeRestriction,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota \
+          --enable-swagger-ui=true \
+          --etcd-cafile=/var/lib/kubernetes/ca.pem \
+          --etcd-certfile=/var/lib/kubernetes/kubernetes.pem \
+          --etcd-keyfile=/var/lib/kubernetes/kubernetes-key.pem \
+          --etcd-servers=https://{{ svc_internal_ip }}:2379 \
+          --event-ttl=1h \
+          --experimental-encryption-provider-config=/var/lib/kubernetes/encryption-config.yaml \
+          --kubelet-certificate-authority=/var/lib/kubernetes/ca.pem \
+          --kubelet-client-certificate=/var/lib/kubernetes/kubernetes.pem \
+          --kubelet-client-key=/var/lib/kubernetes/kubernetes-key.pem \
+          --kubelet-https=true \
+          --runtime-config=api/all \
+          --service-account-key-file=/var/lib/kubernetes/service-account.pem \
+          --service-cluster-ip-range=10.32.0.0/24 \
+          --service-node-port-range=30000-32767 \
+          --tls-cert-file=/var/lib/kubernetes/kubernetes.pem \
+          --tls-private-key-file=/var/lib/kubernetes/kubernetes-key.pem \
+          --v=2 \
+          --kubelet-preferred-address-types=InternalIP,InternalDNS,Hostname,ExternalIP,ExternalDNS
+        Restart=on-failure
+        RestartSec=5
+
+        [Install]
+        WantedBy=multi-user.target
+    mode: 0644
+
+
+- name: create service unit kube-controller-manager
+  copy:
+    dest: "{{ systemd_unit_path }}/kube-controller-manager.service"
+    content: |
+      [Unit]
+      Description=Kubernetes Controller Manager
+      Documentation=https://github.com/kubernetes/kubernetes
+
+      [Service]
+      ExecStart={{ svc_base_bin }}/kube-controller-manager \
+        --address=0.0.0.0 \
+        --cluster-cidr=10.200.0.0/16 \
+        --cluster-name=kubernetes \
+        --cluster-signing-cert-file=/var/lib/kubernetes/ca.pem \
+        --cluster-signing-key-file=/var/lib/kubernetes/ca-key.pem \
+        --kubeconfig=/var/lib/kubernetes/kube-controller-manager.kubeconfig \
+        --leader-elect=true \
+        --root-ca-file=/var/lib/kubernetes/ca.pem \
+        --service-account-private-key-file=/var/lib/kubernetes/service-account-key.pem \
+        --service-cluster-ip-range=10.32.0.0/24 \
+        --use-service-account-credentials=true \
+        --v=2
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0644
+
+- name: create service unit kube-scheduler
+  copy:
+    dest: "{{ systemd_unit_path }}/kube-scheduler.service"
+    content: |
+      [Unit]
+      Description=Kubernetes Scheduler
+      Documentation=https://github.com/kubernetes/kubernetes
+
+      [Service]
+      ExecStart={{ svc_base_bin }}//kube-scheduler \
+        --config=/etc/kubernetes/config/kube-scheduler.yaml \
+        --v=2
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0644
+
+- name: setup service
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kube-apiserver
+    - kube-controller-manager
+    - kube-scheduler

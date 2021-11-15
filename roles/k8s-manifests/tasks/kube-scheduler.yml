@@ -1,0 +1,12 @@
+---
+- name: manifest | kube-scheduler
+  copy:
+    dest: "{{ kconfig_workdir }}/kube-scheduler.yaml"
+    content: |
+      apiVersion: componentconfig/v1alpha1
+      kind: KubeSchedulerConfiguration
+      clientConnection:
+        kubeconfig: "/var/lib/kubernetes/kube-scheduler.kubeconfig"
+      leaderElection:
+        leaderElect: true
+    mode: 0644
