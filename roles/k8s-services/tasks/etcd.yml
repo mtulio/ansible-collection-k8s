@@ -1,0 +1,141 @@
+---
+
+- name: set defautls
+  set_fact:
+    etcd_directories:
+        - /etc/etcd
+        - /var/lib/etcd
+    etcd_version: v3.3.5
+    etcd_os: linux
+    etcd_arch: amd64
+    etcd_service_path: /etc/systemd/system/etcd.service
+    etcd_node_name: kubernetes.default
+    etcd_node_ip: 127.0.0.1
+    etcd_path_bin: /usr/local/bin/etcd
+
+- name: set bin name
+  set_fact:
+    etcd_bin_name: "etcd-{{ etcd_version }}-{{ etcd_os }}-{{ etcd_arch }}"
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    mode: 0755
+  with_items:
+    - /etc/etcd
+    - /var/lib/etcd
+
+- name: "Check {{ etcd_path_bin }} exists"
+  stat:
+    path: "{{ etcd_path_bin }}"
+  register: st_etcd
+
+- name: install
+  when: not(st_etcd.stat.exists)
+  block:
+  - name: Check if exists
+    stat:
+        path: "{{ bootstrap_workdir }}/{{ etcd_bin_name }}.tar.gz"
+    register: st_file
+
+  - name: Download dependencies
+    when: not(st_file.stat.exists)
+    get_url:
+        url: "{{ item.url }}"
+        dest: "{{ bootstrap_workdir }}/{{ item.name }}"
+        mode: 0644
+    with_items:
+        - url: "https://github.com/coreos/etcd/releases/download/{{ etcd_version }}/{{ etcd_bin_name }}.tar.gz"
+          name: "{{ etcd_bin_name }}.tar.gz"
+
+  - name: Check if exists
+    stat:
+        path: "{{ bootstrap_workdir }}/{{ etcd_bin_name }}"
+    register: st_file
+
+  - name: Extract etcd tarball
+    when: not(st_file.stat.exists)
+    ansible.builtin.unarchive:
+        src: "{{ bootstrap_workdir }}/{{ etcd_bin_name }}.tar.gz"
+        dest: "{{ bootstrap_workdir }}"
+        remote_src: yes
+
+  - name: "Check {{ etcd_path_bin }}"
+    stat:
+        path: "{{ bootstrap_workdir }}/{{ etcd_bin_name }}/etcd"
+    register: st_file
+
+  - name: copy etcd
+    when: st_file.stat.exists
+    copy:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      remote_src: yes
+      mode: 0755
+    with_items:
+        - src: "{{ bootstrap_workdir }}/{{ etcd_bin_name }}/etcd"
+          dest: "{{ etcd_path_bin }}"
+        - src: "{{ bootstrap_workdir }}/{{ etcd_bin_name }}/etcdctl"
+          dest: /usr/local/bin/etcdctl
+
+  - name: "Check {{ etcd_path_bin }} exists"
+    stat:
+        path: "{{ etcd_path_bin }}"
+    register: st_etcd
+
+#   - name: check if bin was created
+#     fail:
+#       msg: "{{ etcd_path_bin }} does not exists"
+#     when:
+#       - (st_etcd is defined) and not(st_etcd.stat.exists)
+#       #- not(st_etcd.stat.exists)
+
+- name: Copy certs
+  copy:
+    src: "{{ bootstrap_local_certs }}/{{ item }}"
+    dest: "/etc/etcd/{{ item }}"
+    mode: 0644
+  with_items:
+    - ca.pem
+    - kubernetes-key.pem
+    - kubernetes.pem
+
+- name: create services
+  copy:
+    dest: "{{ etcd_service_path }}"
+    content: |
+        [Unit]
+        Description=etcd
+        Documentation=https://github.com/coreos
+
+        [Service]
+        ExecStart=/usr/local/bin/etcd \
+            --name {{ etcd_node_name }} \
+            --cert-file=/etc/etcd/kubernetes.pem \
+            --key-file=/etc/etcd/kubernetes-key.pem \
+            --peer-cert-file=/etc/etcd/kubernetes.pem \
+            --peer-key-file=/etc/etcd/kubernetes-key.pem \
+            --trusted-ca-file=/etc/etcd/ca.pem \
+            --peer-trusted-ca-file=/etc/etcd/ca.pem \
+            --peer-client-cert-auth \
+            --client-cert-auth \
+            --listen-client-urls https://{{ etcd_node_ip }}:2379 \
+            --advertise-client-urls https://{{ etcd_node_ip }}:2379 \
+            --initial-cluster-token etcd-cluster-0 \
+            --initial-cluster {{ etcd_node_name }}=https://{{ etcd_node_ip }}:2380 \
+            --initial-cluster-state new \
+            --data-dir=/var/lib/etcd
+        Restart=on-failure
+        RestartSec=5
+
+        [Install]
+        WantedBy=multi-user.target
+    mode: 0644
+
+# - name: restart etcd
+#   service:
+#     name: etcd
+#     state: started
+#     enabled: yes
+#     daemon_reload: yes

@@ -1,0 +1,10 @@
+---
+- hosts: k8s-single
+  become: true
+  vars:
+    bootstrap_workdir: "/tmp/k8s-bootstrap"
+    #bootstrap_local_workdir: "{{ ansible_env.HOME }}/.tmp"
+    bootstrap_local_workdir: "/home/mtulio/.tmp"
+    bootstrap_local_certs: "{{ bootstrap_local_workdir }}/certs"
+  roles:
+    - k8s-services

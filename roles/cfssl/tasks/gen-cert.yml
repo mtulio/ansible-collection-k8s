@@ -21,4 +21,22 @@
         -profile=kubernetes \
         {{ icert.cn }}-csr.json \
         | {{ bin_cfssljson }} -bare {{ icert.bare | d(icert.cn) }}
-  when: not(stat_out.stat.exists)
+  when: 
+    - not(stat_out.stat.exists)
+    - icert.hostname is not defined
+
+- name: Generate cert
+  shell: >
+    set -o pipefail;
+    cd {{ cfssl_workdir }};
+    {{ bin_cfssl }} gencert \
+        -ca=ca.pem \
+        -ca-key=ca-key.pem \
+        -config=ca-config.json \
+        -profile=kubernetes \
+        -hostname={{ icert.hostname }} \
+        {{ icert.cn }}-csr.json \
+        | {{ bin_cfssljson }} -bare {{ icert.bare | d(icert.cn) }}
+  when: 
+    - not(stat_out.stat.exists)
+    - icert.hostname is defined

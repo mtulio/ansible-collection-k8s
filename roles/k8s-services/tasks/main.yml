@@ -1,0 +1,17 @@
+---
+
+# Dependencies:
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    mode: 0755
+  with_items:
+    - "{{ bootstrap_workdir }}"
+
+# Download:
+# etcd, 
+
+- include: etcd.yml
+
