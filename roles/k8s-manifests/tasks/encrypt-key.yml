@@ -1,0 +1,22 @@
+---
+- name: Check if env ENCRYPTION_KEY exists
+  fail:
+    msg: "Checking if env ENCRYPTION_KEY exists"
+  when: lookup('env', 'ENCRYPTION_KEY') | default('') | length <= 0
+
+- name: manifest | encryption key
+  copy:
+    dest: "{{ kconfig_workdir }}/00-encryption-config.yaml"
+    content: |
+        kind: EncryptionConfig
+            apiVersion: v1
+            resources:
+            - resources:
+                - secrets
+                providers:
+                - aescbc:
+                    keys:
+                        - name: key1
+                        secret: {{ ansible_env.ENCRYPTION_KEY }}
+                - identity: {}
+    mode: 0644

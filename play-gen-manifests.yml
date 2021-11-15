@@ -1,0 +1,16 @@
+---
+- hosts: localhost
+  connection: local
+  become: false
+  vars:
+    kconfig_workdir: "{{ ansible_env.HOME }}/.tmp/manifests"
+
+  pre_tasks:
+    - name: Create workdir directory
+      file:
+        state: directory
+        path: "{{ kconfig_workdir }}"
+        mode: 0755
+
+  roles:
+    - k8s-manifests
