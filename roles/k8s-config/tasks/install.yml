@@ -13,5 +13,3 @@
     owner: "{{ kconfig_owner }}"
     group: "{{ kconfig_group }}"
   when: not(stat_out.stat.exists)
-  tags:
-    - cfssl

@@ -21,7 +21,7 @@
             - nodes/spec
             - nodes/metrics
           verbs:
-        - "*"
+            - "*"
     mode: 0644
 
 - name: manifest | clusterRoleBinding

@@ -1,0 +1,421 @@
+--- # Setup Worker
+
+- name: Create directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    mode: 0755
+    recurse: yes
+  with_items:
+    - /etc/cni/net.d
+    - "{{ svc_base_cni }}"
+    
+    - /var/lib/kube-proxy
+    - /var/lib/kubernetes
+    - /var/run/kubernetes
+
+- include: svc-install.yml
+  with_items:
+    #- name: crictl
+    #  url: "https://github.com/kubernetes-incubator/cri-tools/releases/download/v1.0.0-beta.0/crictl-v1.0.0-beta.0-linux-amd64.tar.gz"
+    #  need_extract: yes
+    #  extract_src: crictl-v1.0.0-beta.0-linux-amd64.tar.gz
+    #  files: 
+    #    - src: "{{ bootstrap_workdir }}/crictl"
+    #      dest: "{{ svc_base_bin }}/crictl"
+    - name: runsc
+      url: "https://storage.googleapis.com/kubernetes-the-hard-way/runsc"
+      files: 
+        - src: "{{ bootstrap_workdir }}/runsc"
+          dest: "{{ svc_base_bin }}/runsc"
+    - name: runc
+      url: "https://github.com/opencontainers/runc/releases/download/v1.0.0-rc5/runc.amd64"
+      files: 
+        - src: "{{ bootstrap_workdir }}/runc"
+          dest: "{{ svc_base_bin }}/runc"
+    # client
+    - name: kubectl
+      url: "{{ base_url_k8s }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kubectl"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kubectl"
+          dest: "{{ svc_base_bin }}/kubectl"
+    - name: kube-proxy
+      url: "{{ base_url_k8s }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kube-proxy"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kube-proxy"
+          dest: "{{ svc_base_bin }}/kube-proxy"
+    - name: kubelet
+      url: "{{ base_url_k8s }}/{{ k8s_version }}/bin/{{ svc_os }}/{{ svc_arch }}/kubelet"
+      files: 
+        - src: "{{ bootstrap_workdir }}/kubelet"
+          dest: "{{ svc_base_bin }}/kubelet"
+
+    # cni
+    # - name: flannel
+    #   url: "https://github.com/containernetworking/plugins/releases/download/v0.6.0/cni-plugins-amd64-v0.6.0.tgz"
+    #   need_extract: yes
+    #   extract_src: cni-plugins-amd64-v0.6.0.tgz
+    #   files: 
+    #     - src: "{{ bootstrap_workdir }}/bridge"
+    #       dest: "{{ svc_base_cni }}/bridge"
+    #     - src: "{{ bootstrap_workdir }}/dhcp"
+    #       dest: "{{ svc_base_cni }}/dhcp"
+    #     - src: "{{ bootstrap_workdir }}/flannel"
+    #       dest: "{{ svc_base_cni }}/flannel"
+    #     - src: "{{ bootstrap_workdir }}/host-local"
+    #       dest: "{{ svc_base_cni }}/host-local"
+    #     - src: "{{ bootstrap_workdir }}/ipvlan"
+    #       dest: "{{ svc_base_cni }}/ipvlan"
+    #     - src: "{{ bootstrap_workdir }}/loopback"
+    #       dest: "{{ svc_base_cni }}/loopback"
+    #     - src: "{{ bootstrap_workdir }}/macvlan"
+    #       dest: "{{ svc_base_cni }}/macvlan"
+    #     - src: "{{ bootstrap_workdir }}/portmap"
+    #       dest: "{{ svc_base_cni }}/portmap"
+    #     - src: "{{ bootstrap_workdir }}/ptp"
+    #       dest: "{{ svc_base_cni }}/ptp"
+    #     - src: "{{ bootstrap_workdir }}/sample"
+    #       dest: "{{ svc_base_cni }}/sample"
+    #     - src: "{{ bootstrap_workdir }}/tuning"
+    #       dest: "{{ svc_base_cni }}/tuning"
+    #     - src: "{{ bootstrap_workdir }}/vlan"
+    #       dest: "{{ svc_base_cni }}/vlan"
+    # containerd
+    # - name: containerd
+    #   url: "https://github.com/containerd/containerd/releases/download/v1.1.0/containerd-1.1.0.linux-amd64.tar.gz"
+    #   need_extract: yes
+    #   extract_src: containerd-1.1.0.linux-amd64.tar.gz 
+    #   files: 
+    #     - src: "{{ bootstrap_workdir }}/bin/containerd"
+    #       dest: "{{ svc_base_bin_root }}/containerd"
+    #     - src: "{{ bootstrap_workdir }}/bin/containerd-release"
+    #       dest: "{{ svc_base_bin_root }}/containerd-release"
+    #     - src: "{{ bootstrap_workdir }}/bin/containerd-shim"
+    #       dest: "{{ svc_base_bin_root }}/containerd-shim"
+    #     - src: "{{ bootstrap_workdir }}/bin/containerd-stress"
+    #       dest: "{{ svc_base_bin_root }}/containerd-stress"
+    #     - src: "{{ bootstrap_workdir }}/bin/ctr"
+    #       dest: "{{ svc_base_bin_root }}/ctr"
+ 
+    # cri-o
+    #- name: cri-o
+    #  url: "https://storage.googleapis.com/k8s-conform-cri-o/artifacts/cri-o.amd64.61748dc51bdf1af367b8a68938dbbc81c593b95d.tar.gz"
+    #  need_extract: yes
+    #  extract_src: cri-o.amd64.61748dc51bdf1af367b8a68938dbbc81c593b95d.tar.gz
+    #  files: 
+    #    - src: "{{ bootstrap_workdir }}/bin/conmon"
+    #      dest: "{{ svc_base_bin_root }}/conmon"
+    #    - src: "{{ bootstrap_workdir }}/bin/crictl"
+    #      dest: "{{ svc_base_bin_root }}/crictl"
+    #    - src: "{{ bootstrap_workdir }}/bin/crio"
+    #      dest: "{{ svc_base_bin_root }}/crio"
+    #    - src: "{{ bootstrap_workdir }}/bin/crio-status"
+    #      dest: "{{ svc_base_bin_root }}/crio-status"
+    #    - src: "{{ bootstrap_workdir }}/bin/crun"
+    #      dest: "{{ svc_base_bin_root }}/crun"
+    #    - src: "{{ bootstrap_workdir }}/bin/pinns"
+    #      dest: "{{ svc_base_bin_root }}/pinns"
+    #    - src: "{{ bootstrap_workdir }}/bin/runc"
+    #      dest: "{{ svc_base_bin_root }}/runc"
+
+  loop_control:
+    loop_var: isvc
+
+## Containerd
+
+# - name: containerd | create directories
+#   file:
+#     state: absent
+#     path: "{{ item }}"
+#     mode: 0755
+#     recurse: yes
+#   with_items:
+#     - /etc/containerd
+
+- name: containerd | create config file
+  copy:
+    dest: "/etc/containerd/config.toml"
+    content: |
+      [plugins]
+        [plugins.cri.containerd]
+          snapshotter = "overlayfs"
+          [plugins.cri.containerd.default_runtime]
+            runtime_type = "io.containerd.runtime.v1.linux"
+            runtime_engine = "/usr/local/bin/runc"
+            runtime_root = ""
+          [plugins.cri.containerd.untrusted_workload_runtime]
+            runtime_type = "io.containerd.runtime.v1.linux"
+            runtime_engine = "/usr/local/bin/runsc"
+            runtime_root = "/run/containerd/runsc"
+    mode: 0644
+    state: absent
+
+- name: containerd | create service unit
+  copy:
+    dest: "{{ systemd_unit_path }}/containerd.service"
+    content: |
+      [Unit]
+      Description=containerd container runtime
+      Documentation=https://containerd.io
+      After=network.target
+
+      [Service] 
+      ExecStartPre=/sbin/modprobe overlay
+      ExecStart=/bin/containerd
+      Restart=always
+      RestartSec=5
+      Delegate=yes
+      KillMode=process
+      OOMScoreAdjust=-999
+      LimitNOFILE=1048576
+      LimitNPROC=infinity
+      LimitCORE=infinity
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0644
+    state: absent
+
+## Kubelet
+
+- name: kubelet | set hostname
+  set_fact:
+    worker_name: kubernetes.default
+
+- name: kubelet | create directories
+  file:
+    state: directory
+    path: "{{ item }}"
+    mode: 0755
+    recurse: yes
+  with_items:
+    - /var/lib/kubelet
+
+- name: kubelet | copy certs
+  copy:
+    src: "{{ bootstrap_local_certs }}/{{ item }}"
+    dest: "/var/lib/kubelet/{{ item }}"
+    mode: 0644
+  with_items:
+    - "{{ worker_name }}.pem"
+    - "{{ worker_name }}-key.pem"
+
+- name: kubelet | copy ca
+  copy:
+    src: "{{ bootstrap_local_certs }}/{{ item }}"
+    dest: "/var/lib/kubernetes/{{ item }}"
+    mode: 0644
+  with_items:
+    - ca.pem
+
+- name: kubelet | copy kubeconfig
+  copy:
+    src: "{{ bootstrap_local_kc }}/{{ item }}"
+    dest: "/var/lib/kubelet/kubeconfig"
+    mode: 0644
+  with_items:
+    - "{{ worker_name }}.kubeconfig"
+
+# - name: kubelet | create config file
+#   copy:
+#     dest: "/var/lib/kubelet/kubelet-config.yaml"
+#     content: |
+#       kind: KubeletConfiguration
+#       apiVersion: kubelet.config.k8s.io/v1beta1
+#       authentication:
+#         anonymous:
+#           enabled: false
+#         webhook:
+#           enabled: true
+#         x509:
+#           clientCAFile: "/var/lib/kubernetes/ca.pem"
+#       authorization:
+#         mode: Webhook
+#       clusterDomain: "cluster.local"
+#       clusterDNS:
+#         - "10.32.0.10"
+#       runtimeRequestTimeout: "15m"
+#       tlsCertFile: "/var/lib/kubelet/{{ worker_name }}.pem"
+#       tlsPrivateKeyFile: "/var/lib/kubelet/{{ worker_name }}-key.pem"
+#     mode: 0644
+#https://kubernetes.io/docs/tasks/administer-cluster/kubelet-config-file/
+- name: kubelet | create config file
+  copy:
+    dest: "/var/lib/kubelet/kubelet-config.yaml"
+    content: |
+      apiVersion: kubelet.config.k8s.io/v1beta1
+      kind: KubeletConfiguration
+      #address: "192.168.0.8",
+      port: 20250
+      serializeImagePulls: false
+      evictionHard:
+          memory.available:  "200Mi"
+      authentication:
+        anonymous:
+          enabled: false
+        webhook:
+          enabled: true
+        x509:
+          clientCAFile: "/var/lib/kubernetes/ca.pem"
+      authorization:
+        mode: Webhook
+      clusterDomain: "cluster.local"
+      clusterDNS:
+        - "10.32.0.10"
+      runtimeRequestTimeout: "15m"
+      tlsCertFile: "/var/lib/kubelet/{{ worker_name }}.pem"
+      tlsPrivateKeyFile: "/var/lib/kubelet/{{ worker_name }}-key.pem"
+    mode: 0644
+
+# - name: kubelet | create service unit
+#   copy:
+#     dest: "{{ systemd_unit_path }}/kubelet.service"
+#     content: |
+#       [Unit]
+#       Description=Kubernetes Kubelet
+#       Documentation=https://github.com/kubernetes/kubernetes
+#       After=containerd.service
+#       Requires=containerd.service
+
+#       [Service]
+#       ExecStart=/usr/local/bin/kubelet \
+#         --config=/var/lib/kubelet/kubelet-config.yaml \
+#         --container-runtime=remote \
+#         --container-runtime-endpoint=unix:///var/run/containerd/containerd.sock \
+#         --image-pull-progress-deadline=2m \
+#         --kubeconfig=/var/lib/kubelet/kubeconfig \
+#         --network-plugin=cni \
+#         --register-node=true \
+#         --v=2 \
+#         --hostname-override={{ worker_name }} \
+#         --allow-C=true
+#       Restart=on-failure
+#       RestartSec=5
+
+#       [Install]
+#       WantedBy=multi-user.target
+#     mode: 0644
+
+# - name: kubelet | create service unit
+#   copy:
+#     dest: "{{ systemd_unit_path }}/kubelet.service"
+#     content: |
+#       [Unit]
+#       Description=Kubernetes Kubelet
+#       Documentation=https://github.com/kubernetes/kubernetes
+#       After=containerd.service
+#       Requires=containerd.service
+
+#       [Service]
+#       ExecStart=/usr/local/bin/kubelet \
+#         --config=/var/lib/kubelet/kubelet-config.yaml \
+#         --container-runtime=remote \
+#         --container-runtime-endpoint=unix:///var/run/crio/crio.sock \
+#         --runtime-request-timeout=10m \
+#         --image-pull-progress-deadline=2m \
+#         --kubeconfig=/var/lib/kubelet/kubeconfig \
+#         --network-plugin=cni \
+#         --register-node=true \
+#         --v=2 \
+#         --hostname-override={{ worker_name }} \
+#         --allow-C=true
+        
+#       Restart=on-failure
+#       RestartSec=5
+
+#       [Install]
+#       WantedBy=multi-user.target
+#     mode: 0644
+
+- name: kubelet | create service unit
+  copy:
+    dest: "{{ systemd_unit_path }}/kubelet.service"
+    content: |
+      [Unit]
+      Description=Kubernetes Kubelet
+      Documentation=https://github.com/kubernetes/kubernetes
+      After=containerd.service
+      Requires=containerd.service
+
+      [Service]
+      ExecStart=/usr/local/bin/kubelet \
+        --config=/var/lib/kubelet/kubelet-config.yaml \
+        --kubeconfig=/var/lib/kubelet/kubeconfig \
+        --container-runtime=remote \
+        --container-runtime-endpoint=unix:///var/run/crio/crio.sock \
+        --fail-swap-on=false
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0644
+
+
+#W1116 23:39:43.966296  332326 hostport_manager.go:68] The binary conntrack is not installed, this can cause failures in network connection cleanup.
+- name: kubelet | install conntrack-tools
+  package:
+    name: conntrack-tools.x86_64
+    state: installed
+
+## kube-proxy:
+
+- name: kube-proxy | copy kubeconfig
+  copy:
+    src: "{{ bootstrap_local_kc }}/{{ item }}"
+    dest: "/var/lib/kube-proxy/kubeconfig"
+    mode: 0644
+  with_items:
+    - "kube-proxy.kubeconfig"
+
+- name: kube-proxy | create config file
+  copy:
+    dest: "/var/lib/kube-proxy/kube-proxy-config.yaml"
+    content: |
+      kind: KubeProxyConfiguration
+      apiVersion: kubeproxy.config.k8s.io/v1alpha1
+      clientConnection:
+        kubeconfig: "/var/lib/kube-proxy/kubeconfig"
+      mode: "iptables"
+      clusterCIDR: "10.200.0.0/16"
+    mode: 0644
+
+- name: kube-proxy | create service unit
+  copy:
+    dest: "{{ systemd_unit_path }}/kube-proxy.service"
+    content: |
+      [Unit]
+      Description=Kubernetes Kube Proxy
+      Documentation=https://github.com/kubernetes/kubernetes
+
+      [Service]
+      ExecStart=/usr/local/bin/kube-proxy \
+        --config=/var/lib/kube-proxy/kube-proxy-config.yaml
+      Restart=on-failure
+      RestartSec=5
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: 0644
+
+##>>
+
+- name: stop services
+  when:
+    - not ansible_check_mode
+  systemd:
+    name: "{{ item }}"
+    state: stopped
+    enabled: no
+    daemon_reload: yes
+  with_items:
+    - containerd
+
+- name: start services
+  when:
+    - not ansible_check_mode
+  systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+    daemon_reload: yes
+  with_items:
+    - kubelet
+    - kube-proxy

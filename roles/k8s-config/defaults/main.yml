@@ -32,6 +32,12 @@ kconfig_services:
     cert_key: "{{ kconfig_certs_dir }}worker0.mylabserver.com-key.pem"
     user: "system:node:worker0.mylabserver.com"
   
+  - name: "kubernetes.default"
+    server: "https://{{ kconfig_kube_api_address }}:6443"
+    cert: "{{ kconfig_certs_dir }}kubernetes.default.pem"
+    cert_key: "{{ kconfig_certs_dir }}kubernetes.default-key.pem"
+    user: "system:node:kubernetes.default"
+
   # kube-proxy
   - name: "kube-proxy"
     server: "https://{{ kconfig_kube_api_address }}:6443"

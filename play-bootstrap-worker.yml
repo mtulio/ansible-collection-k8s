@@ -9,6 +9,6 @@
     bootstrap_local_mf: "{{ bootstrap_local_workdir }}/manifests"
     bootstrap_local_kc: "{{ bootstrap_local_workdir }}/kube-config"
     systemd_unit_path: "/etc/systemd/system/"
-    node_role: 'control-plane'
+    node_role: 'worker'
   roles:
     - k8s-services

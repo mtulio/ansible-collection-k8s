@@ -1,0 +1,4 @@
+--- # top level playbook generator
+- include: play-gen-certs.yml
+- include: play-gen-config.yml
+- include: play-gen-manifests.yml

@@ -1,6 +1,18 @@
 ---
 
-# Dependencies:
+- name: set defautls
+  set_fact:
+    base_url_k8s: "https://storage.googleapis.com/kubernetes-release/release"
+    svc_os: linux
+    svc_arch: amd64
+    #k8s_version: v1.10.2
+    k8s_version: v1.22.1
+    svc_base_bin: /usr/local/bin
+    svc_base_bin_root: /bin
+    svc_cfg_dir: /etc/kubernetes/config
+    svc_var_dir: /var/lib/kubernetes
+    svc_base_cni: /opt/cni/bin/
+    svc_internal_ip: 127.0.0.1
 
 - name: Create directories
   file:
@@ -11,5 +23,13 @@
     - "{{ bootstrap_workdir }}"
 
 - include: etcd.yml
+  when:
+    - node_role == 'control-plane'
 
 - include: svc-setup-cp.yml
+  when:
+    - node_role == 'control-plane'
+
+- include: svc-setup-wk.yml
+  when:
+    - node_role == 'worker'

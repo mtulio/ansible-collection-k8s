@@ -9,21 +9,22 @@
   when: not(st_dw.stat.exists)
   get_url:
       url: "{{ isvc.url }}"
-      dest: "{{ bootstrap_workdir }}/{{ isvc.name }}"
+      dest: "{{ bootstrap_workdir }}/{{ isvc.extract_src|d(isvc.name) }}"
       mode: 0644
 
 - name: Extract tarball
   when: 
     - not(st_dw.stat.exists)
-    - svc_need_extract|d(false)
+    - isvc.need_extract|d(false)
+    - not ansible_check_mode
   ansible.builtin.unarchive:
-      src: "{{ bootstrap_workdir }}/{{ isvc.name }}.tar.gz"
+      src: "{{ bootstrap_workdir }}/{{ isvc.extract_src }}"
       dest: "{{ bootstrap_workdir }}"
       remote_src: yes
 
 - name: "Check if download exists"
   stat:
-      path: "{{ bootstrap_workdir }}/{{ isvc.name }}"
+      path: "{{ bootstrap_workdir }}/{{ isvc.extract_src|d(isvc.name)  }}"
   register: st_dw_bin
 
 - name: "Check if bin exists: {{ svc_base_bin }}/{{ isvc.name }}"
@@ -31,7 +32,7 @@
       path: "{{ svc_base_bin }}/{{ isvc.name }}"
   register: st_bin
 
-- name: copy bin files
+- name: copy files
   check_mode: no
   when:
     - st_dw_bin.stat is defined
